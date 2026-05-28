@@ -1,23 +1,26 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { HealthModule } from './health/health.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { JobsModule } from './modules/jobs/jobs.module';
+import { CandidatesModule } from './modules/candidates/candidates.module';
+import { ApplicationsModule } from './modules/applications/applications.module';
 
 @Module({
   imports: [
-    // 配置模块（全局）
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env.development', '.env'],
     }),
-    
-    // Prisma 数据库模块
     PrismaModule,
-    
-    // 健康检查模块
     HealthModule,
+    AuthModule,
+    JobsModule,
+    CandidatesModule,
+    ApplicationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
