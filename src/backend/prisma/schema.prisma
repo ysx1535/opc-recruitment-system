@@ -30,6 +30,8 @@ model User {
   jobs          Job[]
   interviews    Interview[]
   applications  Application[] @relation("ApplicationReviewer")
+  evaluations   InterviewEvaluation[]
+  auditLogs     AuditLog[]
   
   @@map("users")
 }
@@ -316,6 +318,9 @@ model Workflow {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
+  // Relations
+  executions    WorkflowExecution[]
+  
   @@map("workflows")
 }
 
@@ -379,6 +384,9 @@ model Integration {
   lastSyncAt  DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  
+  // Relations
+  syncLogs    SyncLog[]
   
   @@map("integrations")
 }

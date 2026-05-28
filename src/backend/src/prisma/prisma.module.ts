@@ -1,7 +1,7 @@
-import { Global, Module } from '@nestjs/common';
+import { Module, Global } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
 
-@Global() // 全局模块，其他模块可直接注入 PrismaService
+@Global()
 @Module({
   providers: [PrismaService],
   exports: [PrismaService],
