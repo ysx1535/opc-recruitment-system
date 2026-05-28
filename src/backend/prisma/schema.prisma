@@ -1,0 +1,399 @@
+// Prisma Schema for OPC Recruitment System
+// Database: PostgreSQL 16
+// Generated: 2026-05-27
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// User & Authentication Models
+// ============================================
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password      String
+  name          String
+  role          UserRole @default(FOUNDER)
+  avatar        String?
+  phone         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  jobs          Job[]
+  interviews    Interview[]
+  applications  Application[] @relation("ApplicationReviewer")
+  
+  @@map("users")
+}
+
+enum UserRole {
+  FOUNDER
+  ADMIN
+  RECRUITER
+  GUEST
+}
+
+// ============================================
+// Job Management Models
+// ============================================
+
+model Job {
+  id                String        @id @default(uuid())
+  title             String
+  description       String        @db.Text
+  requirements      Json?         // Structured requirements
+  salaryMin         Int?
+  salaryMax         Int?
+  location          String?
+  remoteAllowed     Boolean       @default(false)
+  status            JobStatus     @default(DRAFT)
+  customQuestions   Json?         // Custom screening questions
+  templateId        String?
+  publishedAt       DateTime?
+  expiresAt         DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  // Relations
+  posterId          String
+  poster            User          @relation(fields: [posterId], references: [id])
+  applications       Application[]
+  jobTemplate       JobTemplate?  @relation(fields: [templateId], references: [id])
+  
+  @@index([status, publishedAt])
+  @@map("jobs")
+}
+
+enum JobStatus {
+  DRAFT
+  PUBLISHED
+  PAUSED
+  CLOSED
+  EXPIRED
+}
+
+model JobTemplate {
+  id          String   @id @default(uuid())
+  name        String
+  category    String   // tech, product, design, marketing
+  content     Json     // Template content
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  
+  // Relations
+  jobs        Job[]
+  
+  @@map("job_templates")
+}
+
+// ============================================
+// Candidate Management Models
+// ============================================
+
+model Candidate {
+  id              String        @id @default(uuid())
+  name            String
+  email           String?       @unique
+  phone           String?
+  location        String?
+  resumeUrl       String?       // Original resume file URL
+  parsedData      Json?         // Parsed structured data
+  skills          String[]      // Skill tags
+  experienceYears Int?
+  educationLevel  String?
+  source          String?       // Source: boss, linkedin, referral
+  status          CandidateStatus @default(NEW)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  // Relations
+  applications    Application[]
+  communications  CandidateCommunication[]
+  
+  @@index([email, status])
+  @@map("candidates")
+}
+
+enum CandidateStatus {
+  NEW
+  SCREENING
+  INTERVIEWING
+  OFFER
+  HIRED
+  REJECTED
+  WITHDRAWN
+}
+
+model Application {
+  id              String        @id @default(uuid())
+  jobId           String
+  candidateId     String
+  matchScore      Float?        // AI match score (0-100)
+  matchReasons    Json?         // Match reasons from AI
+  status          ApplicationStatus @default(PENDING)
+  appliedAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  // Relations
+  job             Job           @relation(fields: [jobId], references: [id])
+  candidate       Candidate     @relation(fields: [candidateId], references: [id])
+  interviews      Interview[]
+  offer           Offer?
+  reviewerId      String?
+  reviewer        User?         @relation("ApplicationReviewer", fields: [reviewerId], references: [id])
+  
+  @@unique([jobId, candidateId])
+  @@index([status, appliedAt])
+  @@map("applications")
+}
+
+enum ApplicationStatus {
+  PENDING
+  SCREENING
+  INTERVIEW
+  OFFER
+  HIRED
+  REJECTED
+  WITHDRAWN
+}
+
+model CandidateCommunication {
+  id            String   @id @default(uuid())
+  candidateId   String
+  type          CommType // email, sms, wechat
+  direction     CommDirection // inbound, outbound
+  content       String   @db.Text
+  sentAt        DateTime @default(now())
+  
+  // Relations
+  candidate     Candidate @relation(fields: [candidateId], references: [id])
+  
+  @@map("candidate_communications")
+}
+
+enum CommType {
+  EMAIL
+  SMS
+  WECHAT
+  PHONE
+}
+
+enum CommDirection {
+  INBOUND
+  OUTBOUND
+}
+
+// ============================================
+// Interview Management Models
+// ============================================
+
+model Interview {
+  id                String        @id @default(uuid())
+  applicationId     String
+  interviewerId    String
+  scheduledAt      DateTime
+  durationMinutes  Int           @default(60)
+  type              InterviewType
+  meetingLink      String?
+  status            InterviewStatus @default(SCHEDULED)
+  recordingUrl     String?
+  transcript        String?       @db.Text
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  // Relations
+  application       Application   @relation(fields: [applicationId], references: [id])
+  interviewer       User          @relation(fields: [interviewerId], references: [id])
+  evaluation        InterviewEvaluation?
+  
+  @@map("interviews")
+}
+
+enum InterviewType {
+  PHONE
+  VIDEO
+  ONSITE
+  GROUP
+  TECHNICAL
+}
+
+enum InterviewStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  RESCHEDULED
+}
+
+model InterviewEvaluation {
+  id              String   @id @default(uuid())
+  interviewId     String   @unique
+  evaluatorId     String
+  scores          Json     // {technical: 4, communication: 5, culture_fit: 4}
+  overallScore    Float
+  notes           String?  @db.Text
+  recommendation  Recommendation
+  submittedAt     DateTime @default(now())
+  
+  // Relations
+  interview       Interview @relation(fields: [interviewId], references: [id])
+  evaluator       User      @relation(fields: [evaluatorId], references: [id])
+  
+  @@map("interview_evaluations")
+}
+
+enum Recommendation {
+  STRONG_YES
+  YES
+  MAYBE
+  NO
+  STRONG_NO
+}
+
+model InterviewQuestion {
+  id          String   @id @default(uuid())
+  category    String   // behavioral, technical, cultural
+  question    String   @db.Text
+  suggestedAnswer String? @db.Text
+  tags        String[]
+  createdAt   DateTime @default(now())
+  
+  @@map("interview_questions")
+}
+
+// ============================================
+// Offer Management Models
+// ============================================
+
+model Offer {
+  id              String      @id @default(uuid())
+  applicationId   String      @unique
+  salary          Decimal     @db.Decimal(10, 2)
+  equity          Decimal?    @db.Decimal(5, 2) // Equity percentage
+  bonus           Decimal?    @db.Decimal(10, 2)
+  startDate       DateTime
+  offerLetterUrl  String?
+  status          OfferStatus @default(DRAFT)
+  sentAt          DateTime?
+  signedAt        DateTime?
+  expiresAt       DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  // Relations
+  application     Application @relation(fields: [applicationId], references: [id])
+  
+  @@map("offers")
+}
+
+enum OfferStatus {
+  DRAFT
+  SENT
+  SIGNED
+  DECLINED
+  EXPIRED
+  WITHDRAWN
+}
+
+// ============================================
+// Workflow & Automation Models
+// ============================================
+
+model Workflow {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  trigger     Json     // Trigger configuration
+  actions     Json[]   // Array of actions
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("workflows")
+}
+
+model WorkflowExecution {
+  id          String   @id @default(uuid())
+  workflowId  String
+  triggerData Json?    // Data that triggered the workflow
+  status      String   // pending, running, completed, failed
+  result      Json?    // Execution result
+  executedAt  DateTime @default(now())
+  
+  // Relations
+  workflow    Workflow @relation(fields: [workflowId], references: [id])
+  
+  @@map("workflow_executions")
+}
+
+// ============================================
+// Analytics & Logging Models
+// ============================================
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String   // CREATE, UPDATE, DELETE, VIEW
+  entity    String   // Job, Candidate, Application, etc.
+  entityId  String
+  changes   Json?    // Before/after changes
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  
+  // Relations
+  user      User?    @relation(fields: [userId], references: [id])
+  
+  @@index([entity, entityId])
+  @@index([userId, createdAt])
+  @@map("audit_logs")
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(uuid())
+  eventType String   // page_view, job_apply, interview_schedule, etc.
+  userId    String?
+  metadata  Json?    // Event-specific data
+  createdAt DateTime @default(now())
+  
+  @@index([eventType, createdAt])
+  @@map("analytics_events")
+}
+
+// ============================================
+// Integration Models (for external platforms)
+// ============================================
+
+model Integration {
+  id          String   @id @default(uuid())
+  platform    String   // boss, lagou, linkedin, wechat
+  config      Json     // Platform-specific configuration
+  isActive    Boolean  @default(true)
+  lastSyncAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("integrations")
+}
+
+model SyncLog {
+  id          String   @id @default(uuid())
+  integrationId String
+  status      String   // success, failed, partial
+  recordsSynced Int    @default(0)
+  errors      Json?    // Array of errors
+  startedAt   DateTime
+  completedAt DateTime?
+  
+  // Relations
+  integration Integration @relation(fields: [integrationId], references: [id])
+  
+  @@map("sync_logs")
+}

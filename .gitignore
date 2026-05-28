@@ -1,0 +1,115 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment
+.env
+.env.local
+.env.development
+.env.production
+.env.staging
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Testing
+coverage/
+*.lcov
+.nyc_output
+
+# Cache
+.cache/
+.parcel-cache/
+.eslintcache
+node_modules/.cache/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+prisma/migrations/
+
+# Uploads
+uploads/
+public/uploads/
+
+# Misc
+*.tgz
+*.tar.gz
+*.zip
+
+# CI/CD
+.coverage/
+.report/
+
+# OS
+Thumbs.db
+Desktop.ini
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Docker
+docker-compose.override.yml
+
+# Kubernetes
+k8s/
+
+# Storybook
+.storybook/
+storybook-static/
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Turbo
+.turbo/
+
+# Vercel
+.vercel/
+
+# Railway
+.railway/
+
+# NestJS
+dist/
+coverage/
+
+# Next.js
+.next/
+out/
+
+# Prisma
+prisma/migrations/
+
+# MongoDB
+data/
+
+# Redis
+dump.rdb
+appendonly.aof
