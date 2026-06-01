@@ -1,0 +1,16 @@
+[Unit]
+Description=OPC Recruitment System Frontend (Next.js)
+After=network.target opc-backend.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/opc-recruitment-system/src/frontend/standalone
+Environment=PORT=3000
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
