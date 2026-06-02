@@ -138,17 +138,17 @@ export class JobsService {
     return job;
   }
 
-  async update(id: string, dto: UpdateJobDto, posterId: string) {
+  async update(id: string, dto: UpdateJobDto, posterId: string,userRole?: string): Promise<Job>  {
     const job = await this.prisma.job.findUnique({
       where: { id },
     });
 
     if (!job) {
-      throw new NotFoundException('职位不存在');
+      throw new NotFoundException('Job not found');
     }
 
-    if (job.posterId !== posterId) {
-      throw new NotFoundException('无权修改此职位');
+    if (job.posterId !== posterId && !['FOUNDER', 'ADMIN'].includes(userRole) ) {
+      throw new NotFoundException('No permission to modify this job');
     }
 
     return this.prisma.job.update({
@@ -173,17 +173,17 @@ export class JobsService {
     });
   }
 
-  async remove(id: string, posterId: string) {
+  async remove(id: string, posterId: string,userRole?: string) : Promise<{ message: string }>{
     const job = await this.prisma.job.findUnique({
       where: { id },
     });
 
     if (!job) {
-      throw new NotFoundException('职位不存在');
+      throw new NotFoundException('Job not found');
     }
 
-    if (job.posterId !== posterId) {
-      throw new NotFoundException('无权删除此职位');
+    if (job.posterId !== posterId && !['FOUNDER', 'ADMIN'].includes(userRole) ) {
+      throw new NotFoundException('No permission to delete this job');
     }
 
     return this.prisma.job.delete({

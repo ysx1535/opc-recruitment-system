@@ -15,7 +15,7 @@ import { JobsService } from './jobs.service';
 import { CreateJobDto, UpdateJobDto, JobQueryDto } from './dto/job.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
-@ApiTags('职位管理')
+@ApiTags('Job Management')
 @Controller('jobs')
 export class JobsController {
   constructor(private jobsService: JobsService) {}
@@ -23,13 +23,13 @@ export class JobsController {
   @Post()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: '创建职位' })
+  @ApiOperation({ summary: 'Create job posting' })
   create(@Body() dto: CreateJobDto, @Request() req) {
     return this.jobsService.create(dto, req.user.id);
   }
 
   @Get()
-  @ApiOperation({ summary: '获取职位列表（公开）' })
+  @ApiOperation({ summary: 'Get job list (public)' })
   findAll(@Query() query: JobQueryDto) {
     return this.jobsService.findAll(query);
   }
@@ -37,13 +37,13 @@ export class JobsController {
   @Get('stats')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: '获取职位统计' })
+  @ApiOperation({ summary: 'Get job statistics' })
   getStats(@Request() req) {
     return this.jobsService.getStats(req.user.id);
   }
 
   @Get(':id')
-  @ApiOperation({ summary: '获取职位详情（公开）' })
+  @ApiOperation({ summary: 'Get job details (public)' })
   findOne(@Param('id') id: string) {
     return this.jobsService.findPublic(id);
   }
@@ -51,20 +51,22 @@ export class JobsController {
   @Put(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: '更新职位' })
+  @ApiOperation({ summary: 'Update job posting' })
   update(
     @Param('id') id: string,
     @Body() dto: UpdateJobDto,
     @Request() req,
   ) {
-    return this.jobsService.update(id, dto, req.user.id);
+    // PASS role to service for hybrid permission check
+    return this.jobsService.update(id, dto, req.user.id, req.user.role);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: '删除职位' })
+  @ApiOperation({ summary: 'Delete job posting' })
   remove(@Param('id') id: string, @Request() req) {
-    return this.jobsService.remove(id, req.user.id);
+    // PASS role to service for hybrid permission check
+    return this.jobsService.remove(id, req.user.id, req.user.role);
   }
 }
