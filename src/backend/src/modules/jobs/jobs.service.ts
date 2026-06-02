@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateJobDto, UpdateJobDto, JobQueryDto, JobStatus } from './dto/job.dto';
+import { Job } from '@prisma/client';
 
 @Injectable()
 export class JobsService {
@@ -138,7 +139,7 @@ export class JobsService {
     return job;
   }
 
-  async update(id: string, dto: UpdateJobDto, posterId: string,userRole?: string): Promise<Job>  {
+  async update(id: string, dto: UpdateJobDto, posterId: string, userRole: string = ''): Promise<Job>  {
     const job = await this.prisma.job.findUnique({
       where: { id },
     });
@@ -147,7 +148,7 @@ export class JobsService {
       throw new NotFoundException('Job not found');
     }
 
-    if (job.posterId !== posterId && !['FOUNDER', 'ADMIN'].includes(userRole) ) {
+    if (job.posterId !== posterId && !['FOUNDER', 'ADMIN'].includes(userRole)) {
       throw new NotFoundException('No permission to modify this job');
     }
 
@@ -173,7 +174,7 @@ export class JobsService {
     });
   }
 
-  async remove(id: string, posterId: string,userRole?: string) : Promise<{ message: string }>{
+  async remove(id: string, posterId: string, userRole: string = ''): Promise<{ message: string }> {
     const job = await this.prisma.job.findUnique({
       where: { id },
     });
@@ -182,13 +183,15 @@ export class JobsService {
       throw new NotFoundException('Job not found');
     }
 
-    if (job.posterId !== posterId && !['FOUNDER', 'ADMIN'].includes(userRole) ) {
+    if (job.posterId !== posterId && !['FOUNDER', 'ADMIN'].includes(userRole)) {
       throw new NotFoundException('No permission to delete this job');
     }
 
-    return this.prisma.job.delete({
+    await this.prisma.job.delete({
       where: { id },
     });
+
+    return { message: 'Job deleted successfully' };
   }
 
   async getStats(posterId: string) {
