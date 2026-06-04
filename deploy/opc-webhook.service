@@ -1,0 +1,18 @@
+[Unit]
+Description=OPC Recruitment Webhook Server
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/opc-recruitment-system
+Environment="WEBHOOK_SECRET=opc-webhook-2024-secret"
+Environment="PORT=9000"
+ExecStart=/usr/bin/node /opt/opc-recruitment-system/deploy/webhook-server.js
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
