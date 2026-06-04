@@ -2,7 +2,7 @@ name: CD - Continuous Deployment
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
     tags: [ 'v*' ]
   workflow_dispatch:  # 支持手动触发
 
@@ -268,3 +268,30 @@ jobs:
           package-type: 'container'
           min-versions-to-keep: 10
           delete-only-untagged-versions: true
+
+  # 部署到阿里云 ECS 服务器
+  deploy-ecs:
+    name: 🚀 Deploy to ECS
+    runs-on: ubuntu-latest
+    needs: []
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://opc-recruitment.com
+
+    steps:
+      - name: 🚀 SSH Deploy to ECS
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.ECS_HOST }}
+          username: root
+          key: ${{ secrets.ECS_SSH_KEY }}
+          script: |
+            cd /opt/opc-recruitment-system
+            git pull origin master
+            cd src/backend
+            npm install
+            npm run build
+            systemctl restart opc-backend
+            systemctl restart opc-frontend
+            echo "✅ ECS deployment completed!"
