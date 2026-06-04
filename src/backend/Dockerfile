@@ -19,14 +19,14 @@ WORKDIR /app
 # 复制依赖
 COPY --from=deps /app/node_modules ./node_modules
 
-# 复制源码
+# 复制源码和 Prisma schema（build 前需要生成 Prisma Client）
 COPY . .
 
-# 构建 NestJS 项目
-RUN npm run build
-
-# 生成 Prisma Client
+# 先生成 Prisma Client（NestJS build 时需要）
 RUN npx prisma generate
+
+# 构建 NestJS 项目（verbose 输出）
+RUN npm run build -- --verbose 2>&1 || (echo "❌ BUILD FAILED" && cat dist/main.js 2>/dev/null || true && exit 1)
 
 # ==================== 生产阶段 ====================
 FROM node:18-alpine AS runner
@@ -40,5 +40,8 @@ COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 
 EXPOSE 3001
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3001/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))" || exit 1
 
 CMD ["node", "dist/main.js"]
