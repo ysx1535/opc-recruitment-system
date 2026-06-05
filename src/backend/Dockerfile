@@ -33,11 +33,17 @@ FROM node:18-alpine AS runner
 
 WORKDIR /app
 
+# 安装 OpenSSL 1.1 兼容包（Prisma 5.x 需要）
+RUN apk add --no-cache openssl1.1-compat
+
 # 复制构建产物
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
+
+# 重新生成 Prisma Client（确保适配当前系统）
+RUN npx prisma generate
 
 EXPOSE 3001
 
