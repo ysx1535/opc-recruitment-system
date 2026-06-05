@@ -9,7 +9,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # 安装全部依赖（build 需要 devDependencies）
-RUN npm install --ignore-scripts
+RUN npm install
 
 # ==================== 构建阶段 ====================
 FROM node:18-alpine AS builder
