@@ -5,12 +5,8 @@ FROM node:18-alpine AS deps
 
 WORKDIR /app
 
-# 启用 Corepack (用于 pnpm/yarn)
-RUN corepack enable
-
 # 复制依赖文件
 COPY package*.json ./
-COPY pnpm-lock.yaml ./
 
 # 安装依赖
 RUN npm ci
