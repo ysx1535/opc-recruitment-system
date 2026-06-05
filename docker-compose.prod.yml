@@ -57,9 +57,7 @@ services:
 
   # Backend API
   backend:
-    build:
-      context: ./src/backend
-      dockerfile: Dockerfile
+    image: ghcr.io/ysx1535/opc-recruitment-system/backend:latest
     container_name: opc-backend
     restart: unless-stopped
     environment:
@@ -86,9 +84,7 @@ services:
 
   # Frontend Web
   frontend:
-    build:
-      context: ./src/frontend
-      dockerfile: Dockerfile
+    image: ghcr.io/ysx1535/opc-recruitment-system/frontend:latest
     container_name: opc-frontend
     restart: unless-stopped
     environment:
