@@ -57,7 +57,7 @@ services:
 
   # Backend API
   backend:
-    image: ghcr.io/ysx1535/opc-recruitment-system/backend:latest
+    image: ghcr.io/ysx1535/opc-recruitment-system/backend:master
     container_name: opc-backend
     restart: unless-stopped
     environment:
@@ -84,7 +84,7 @@ services:
 
   # Frontend Web
   frontend:
-    image: ghcr.io/ysx1535/opc-recruitment-system/frontend:latest
+    image: ghcr.io/ysx1535/opc-recruitment-system/frontend:master
     container_name: opc-frontend
     restart: unless-stopped
     environment:
