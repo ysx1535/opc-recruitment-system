@@ -29,21 +29,18 @@ RUN npx prisma generate
 RUN npm run build 2>&1 || (echo "❌ BUILD FAILED" && cat dist/main.js 2>/dev/null || true && exit 1)
 
 # ==================== 生产阶段 ====================
-FROM node:18-alpine AS runner
+FROM node:18 AS runner
 
 WORKDIR /app
 
-# 安装 OpenSSL 1.1 兼容包（Prisma 5.x 需要）
-RUN apk add --no-cache openssl1.1-compat
+# 安装 OpenSSL（Debian 基础镜像更稳定）
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 # 复制构建产物
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
-
-# 重新生成 Prisma Client（确保适配当前系统）
-RUN npx prisma generate
 
 EXPOSE 3001
 
