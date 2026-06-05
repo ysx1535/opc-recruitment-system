@@ -26,7 +26,7 @@ COPY . .
 RUN npx prisma generate
 
 # 构建 NestJS 项目（verbose 输出）
-RUN npm run build -- --verbose 2>&1 || (echo "❌ BUILD FAILED" && cat dist/main.js 2>/dev/null || true && exit 1)
+RUN npm run build 2>&1 || (echo "❌ BUILD FAILED" && cat dist/main.js 2>/dev/null || true && exit 1)
 
 # ==================== 生产阶段 ====================
 FROM node:18-alpine AS runner
