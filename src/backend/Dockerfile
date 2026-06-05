@@ -1,7 +1,7 @@
 # 多阶段构建 Dockerfile for NestJS Backend
 
 # ==================== 依赖安装阶段 ====================
-FROM node:18 AS deps
+FROM node:18-alpine AS deps
 
 WORKDIR /app
 
@@ -12,7 +12,7 @@ COPY package*.json ./
 RUN npm install --ignore-scripts
 
 # ==================== 构建阶段 ====================
-FROM node:18 AS builder
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
