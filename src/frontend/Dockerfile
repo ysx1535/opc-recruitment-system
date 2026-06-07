@@ -8,8 +8,8 @@ WORKDIR /app
 # 复制依赖文件
 COPY package*.json ./
 
-# 安装依赖
-RUN npm ci
+# 使用淘宝 npm 镜像加速
+RUN npm config set registry https://registry.npmmirror.com && npm ci
 
 # ==================== 构建阶段 ====================
 FROM node:18-alpine AS builder
